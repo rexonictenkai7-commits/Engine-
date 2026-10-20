@@ -546,7 +546,7 @@ TOKEN = (
     or ""
 ).strip()
 try:
-    OWNER_ID = int(os.environ.get("OWNER_ID", "8253072984"))
+    OWNER_ID = int(os.environ.get("OWNER_ID", "8900217997"))
 except (TypeError, ValueError):
     OWNER_ID = 0
 if not TOKEN:
